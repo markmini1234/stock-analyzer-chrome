@@ -1,0 +1,12 @@
+#stock-analyzer-overlay {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+#stock-analyzer-overlay a {
+  color: #1a73e8;
+  text-decoration: none;
+}
+
+#stock-analyzer-overlay a:hover {
+  text-decoration: underline;
+}

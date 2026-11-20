@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>雪球AI投资伴侣 · Palantir 投研看板</title>
+  <style>
+    /* ===== 全局 ===== */
+    :root {
+      --bg: #0b1422;
+      --bg-card: #111d2f;
+      --bg-card-hover: #16273f;
+      --border: #1e3450;
+      --text: #dce8f5;
+      --text-muted: #6f8aa8;
+      --accent: #1e7bf2;
+      --accent2: #16b9b3;
+      --good: #0f9d6e;
+      --warn: #d97706;
+      --bad: #ef4444;
+      --gradient: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif;
+      min-height: 100vh;
+      padding: 20px 24px 40px;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ===== 头部 ===== */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 0 14px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .logo {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--gradient); display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .header h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.3px; }
+    .header h1 span { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-muted); }
+    .header-right .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .header-right .dot.green { background: var(--good); }
+    .header-right .dot.blue { background: var(--accent); }
+
+    /* ===== 指标卡片网格 ===== */
+    .stat-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin: 16px 0;
+    }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 12px; text-align: center; transition: all .2s;
+    }
+    .stat-card:hover { background: var(--bg-card-hover); border-color: #2a4a70; transform: translateY(-1px); }
+    .stat-card .num { font-size: 26px; font-weight: 800; line-height: 1.2; }
+    .stat-card .num.good { color: var(--good); }
+    .stat-card .num.warn { color: var(--warn); }
+    .stat-card .num.bad { color: var(--bad); }
+    .stat-card .num.accent { color: var(--accent); }
+    .stat-card .num.accent2 { color: var(--accent2); }
+    .stat-card .label { font-size: 10px; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.3px; }
+
+    /* ===== 行情跑马灯 ===== */
+    .ticker-wrap {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 8px 12px; margin-bottom: 14px; overflow: hidden;
+    }
+    .ticker-inner {
+      display: flex; gap: 18px; overflow-x: auto; padding-bottom: 2px;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .ticker-inner::-webkit-scrollbar { display: none; }
+    .ticker-item {
+      flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+      font-size: 11px; padding: 3px 8px; border-radius: 6px;
+      background: rgba(255,255,255,.03); white-space: nowrap;
+    }
+    .ticker-item .name { color: var(--text-muted); }
+    .ticker-item .val { font-weight: 700; }
+    .ticker-item .chg { font-weight: 700; font-size: 10px; }
+    .ticker-item .chg.up { color: var(--bad); }
+    .ticker-item .chg.down { color: var(--good); }
+
+    /* ===== 主体网格 ===== */
+    .main-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;
+    }
+    .main-grid.full { grid-template-columns: 1fr; }
+    @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px; overflow: hidden;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    }
+    .card-title { font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: 0.3px; }
+    .card-badge {
+      font-size: 9px; padding: 2px 8px; border-radius: 10px;
+      background: rgba(30,123,242,.15); color: var(--accent); font-weight: 600;
+    }
+    .card-badge.good { background: rgba(15,157,110,.15); color: var(--good); }
+    .card-badge.warn { background: rgba(217,119,6,.12); color: var(--warn); }
+
+    /* ===== 表格 ===== */
+    .dash-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .dash-table th {
+      text-align: left; padding: 5px 6px; font-size: 9px; color: var(--text-muted);
+      border-bottom: 1px solid var(--border); font-weight: 600; letter-spacing: 0.3px;
+    }
+    .dash-table td { padding: 4px 6px; border-bottom: 1px solid rgba(30,52,80,.4); }
+    .dash-table tr:hover td { background: rgba(255,255,255,.02); }
+    .dash-table .num { font-family: ui-monospace, monospace; font-weight: 600; }
+    .dash-table .up { color: var(--bad); }
+    .dash-table .down { color: var(--good); }
+    .dash-table .pos1 { color: gold; font-weight: 700; }
+    .dash-table .pos2 { color: #c0c0c0; font-weight: 600; }
+    .dash-table .pos3 { color: #cd7f32; font-weight: 600; }
+    .dash-table .current { background: rgba(30,123,242,.08); }
+    .dash-table .clickable { cursor: pointer; }
+    .dash-table .clickable:hover { background: rgba(30,123,242,.12); }
+
+    /* ===== 行业柱状图 ===== */
+    .bar-chart { margin-top: 6px; }
+    .bar-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .bar-label { width: 80px; font-size: 10px; color: var(--text-muted); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+    .bar-track { flex: 1; height: 14px; background: rgba(255,255,255,.04); border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width .8s ease; min-width: 2px; }
+    .bar-count { width: 30px; font-size: 10px; font-weight: 600; color: var(--text-muted); text-align: right; flex-shrink: 0; }
+
+    /* ===== 评分徽章 ===== */
+    .score-badge {
+      display: inline-block; padding: 0 5px; border-radius: 3px; font-weight: 700; font-size: 10px;
+    }
+    .score-badge.s-good { color: var(--good); background: rgba(15,157,110,.15); }
+    .score-badge.s-warn { color: var(--warn); background: rgba(217,119,6,.12); }
+    .score-badge.s-bad { color: var(--bad); background: rgba(239,68,68,.1); }
+    .score-badge.s-info { color: var(--accent); background: rgba(30,123,242,.12); }
+
+    /* ===== Tab ===== */
+    .tab-bar {
+      display: flex; gap: 2px; margin-bottom: 10px;
+      background: rgba(0,0,0,.2); border-radius: 8px; padding: 2px;
+    }
+    .tab-btn {
+      flex: 1; padding: 6px 10px; border: none; border-radius: 6px;
+      font-size: 10px; font-weight: 700; color: var(--text-muted); background: transparent;
+      cursor: pointer; transition: all .15s;
+    }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .tab-btn.active { color: #fff; background: var(--gradient); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ===== 六维雷达 ===== */
+    .radar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    @media (max-width: 600px) { .radar-grid { grid-template-columns: 1fr; } }
+    .radar-item {
+      padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .radar-item .ri-score { font-size: 20px; font-weight: 800; width: 40px; text-align: center; }
+    .radar-item .ri-info { flex: 1; }
+    .radar-item .ri-label { font-size: 10px; color: var(--text-muted); }
+    .radar-item .ri-value { font-size: 12px; font-weight: 700; }
+    .radar-item .ri-bar { height: 3px; border-radius: 2px; margin-top: 3px; background: rgba(255,255,255,.06); overflow: hidden; }
+    .radar-item .ri-bar-fill { height: 100%; border-radius: 2px; transition: width .8s; }
+
+    /* ===== 信号徽章 ===== */
+    .signal-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 1px 7px; border-radius: 4px; font-size: 9px; font-weight: 700;
+    }
+    .signal-badge.triggered { background: rgba(15,157,110,.15); color: var(--good); }
+    .signal-badge.pending { background: rgba(217,119,6,.1); color: var(--warn); }
+    .signal-badge.none { background: rgba(239,68,68,.08); color: var(--bad); }
+
+    /* ===== Loading ===== */
+    .loading {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 80px 20px; gap: 14px;
+    }
+    .loading .spinner {
+      width: 36px; height: 36px; border: 3px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { font-size: 13px; color: var(--text-muted); }
+
+    /* ===== 工具 ===== */
+    .empty-state { text-align: center; padding: 30px; color: var(--text-muted); font-size: 12px; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .gap-2 { gap: 6px; }
+    .mt-2 { margin-top: 6px; }
+    .mb-1 { margin-bottom: 4px; }
+    .text-muted { color: var(--text-muted); }
+    .text-sm { font-size: 10px; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fw-700 { font-weight: 700; }
+    .stock-link { color: var(--accent); cursor: pointer; }
+    .stock-link:hover { text-decoration: underline; }
+
+    /* ===== 底部 ===== */
+    .footer {
+      margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); flex-wrap: wrap; gap: 8px;
+    }
+    .footer .pill {
+      display: inline-block; padding: 1px 8px; border-radius: 10px;
+      background: rgba(30,123,242,.1); color: var(--accent); font-weight: 600;
+    }
+    /* ===== CSV 导出按钮 ===== */
+    .btn-export {
+      background: rgba(255,255,255,.06); border: 1px solid var(--border); color: var(--text);
+      padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer;
+      transition: all .2s; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+    }
+    .btn-export:hover { background: var(--gradient); color: #fff; border-color: transparent; transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">📊</div>
+    <div>
+      <h1><span>Palantir</span> 投研看板</h1>
+      <div class="sub">雪球数据 · 预分析引擎 · 巴菲特六维框架</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="btn-export" id="btnExportCSV" title="导出当前看板全量数据为 CSV">📥 CSV</button>
+    <span class="dot blue"></span> <span id="headerStockCount">--</span> 只覆盖
+    <span style="margin:0 4px;">|</span>
+    <span class="dot green"></span> <span id="headerUpdatedAt">--</span>
+  </div>
+</div>
+
+<!-- ===== 行情快照 ===== -->
+<div class="ticker-wrap" id="tickerContainer">
+  <div class="ticker-inner" id="tickerInner">
+    <div class="ticker-item"><span class="name">加载中...</span></div>
+  </div>
+</div>
+
+<!-- ===== 核心指标 ===== -->
+<div class="stat-grid" id="statGrid"></div>
+
+<!-- ===== TAB 导航 ===== -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" data-tab="overview">🏠 市场全景</button>
+  <button class="tab-btn" data-tab="ranking">🏆 价值排行</button>
+  <button class="tab-btn" data-tab="industry">🏭 行业透视</button>
+  <button class="tab-btn" data-tab="signal">📡 信号监控</button>
+</div>
+
+<!-- ===== TAB CONTENT ===== -->
+<div id="tabOverview" class="tab-content active">
+  <div class="main-grid full" id="overviewContent">
+    <div class="loading"><div class="spinner"></div><p>正在从预分析引擎加载数据...</p></div>
+  </div>
+</div>
+
+<div id="tabRanking" class="tab-content">
+  <div class="main-grid full" id="rankingContent">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<div id="tabIndustry" class="tab-content">
+  <div class="main-grid" id="industryContent">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<div id="tabSignal" class="tab-content">
+  <div class="main-grid full" id="signalContent">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+  <div><span class="pill">Palantir Ontology</span> 预分析数据驱动 · 决策闭环</div>
+  <div>更新于 <span id="footerUpdatedAt">--</span> · 共 <span id="footerStockCount">--</span> 只股票</div>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>

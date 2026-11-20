@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "雪球AI投资伴侣",
+  "version": "1.3.0",
+  "description": "雪球股票页左键触发分析，自动抓取基本面并按巴菲特价值投资框架生成报告。",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "cookies"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "https://xueqiu.com/*",
+    "https://stock.xueqiu.com/*",
+    "https://api.openai.com/*",
+    "https://api.deepseek.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "雪球AI投资伴侣",
+    "default_popup": "options.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://xueqiu.com/*",
+        "https://www.xueqiu.com/*"
+      ],
+      "js": [
+        "content-script.js"
+      ]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "xueqiu-ai-companion@example.com",
+      "strict_min_version": "121.0"
+    }
+  }
+}

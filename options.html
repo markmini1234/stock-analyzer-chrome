@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>雪球AI投资伴侣 - 投研看板</title>
+    <style>
+      :root {
+        --bg-top: #eef4fa;
+        --bg-bottom: #e4edf6;
+        --panel-bg: #ffffff;
+        --panel-soft: #f6fbff;
+        --line: #c6d6e6;
+        --text: #1f3246;
+        --muted: #65809c;
+        --hero-a: #1e7bf2;
+        --hero-b: #16b9b3;
+        --btn-soft: #f2f7fc;
+        --danger-soft: #fff3f3;
+        --danger-line: #e5bcbc;
+        --danger-text: #a44747;
+        --good: #0f9d6e;
+        --warn: #d97706;
+        --bad: #dc2626;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; padding: 16px; min-width: 620px;
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+        background: linear-gradient(145deg, var(--bg-top), var(--bg-bottom));
+      }
+      .page {
+        border: 1px solid var(--line); border-radius: 16px;
+        background: linear-gradient(180deg, #ffffff, #f8fbff);
+        box-shadow: 0 14px 24px rgba(101, 128, 156, 0.22); overflow: hidden;
+      }
+      .header {
+        padding: 16px 18px 12px; background: #f0f7ff; border-bottom: 1px solid #dce8f5;
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .header-left { display: flex; align-items: center; gap: 10px; }
+      .header-right { display: flex; align-items: center; gap: 8px; }
+      .title { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.2px; }
+      .subtitle { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+      .btn-dash {
+        background: linear-gradient(135deg, #1e7bf2, #16b9b3); border: none; color: #fff;
+        padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+        transition: all .2s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+      }
+      .btn-dash:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,123,242,.3); }
+      .quick-status {
+        margin: 12px 18px 0; padding: 10px 12px; border-radius: 12px;
+        color: #f4fbff; font-size: 12px; font-weight: 700; line-height: 1.45;
+        background: linear-gradient(90deg, var(--hero-a), var(--hero-b));
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .section {
+        margin: 12px 12px 0; padding: 12px;
+        border: 1px solid var(--line); border-radius: 12px; background: var(--panel-soft);
+      }
+      .section-title { margin: 0 0 10px; font-size: 14px; font-weight: 800; }
+      label.field { display: block; margin: 9px 0 4px; font-size: 12px; font-weight: 700; color: #2e475f; }
+      input[type="text"], input[type="password"], input[type="number"], textarea {
+        width: 100%; border: 1px solid #c4d5e6; border-radius: 10px; padding: 9px 10px;
+        background: #fff; font-size: 12px; color: #1e2c3c;
+      }
+      textarea { resize: vertical; min-height: 88px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      .checkbox-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: #3e5872; }
+      .button-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+      .button-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+      button {
+        border: 1px solid #c2d4e6; background: var(--btn-soft); border-radius: 10px;
+        padding: 9px 10px; color: #1f3b56; font-size: 12px; font-weight: 700; cursor: pointer;
+      }
+      button.primary { border: none; color: #fff; background: linear-gradient(90deg, var(--hero-a), var(--hero-b)); }
+      button.danger { background: var(--danger-soft); color: var(--danger-text); border-color: var(--danger-line); }
+      #backtestReport {
+        margin-top: 10px; max-height: 250px; overflow: auto; white-space: pre-wrap;
+        word-break: break-word; line-height: 1.5; border: 1px solid #c4d6e8;
+        border-radius: 10px; padding: 10px; background: #fff; font-size: 12px; color: #395774;
+      }
+      #status { margin: 10px 12px 14px; min-height: 16px; font-size: 12px; }
+      /* ===== 投研看板 ===== */
+      .dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+      .dash-stat { padding: 10px 8px; background: linear-gradient(160deg, #f0f7ff, #e4eff9); border-radius: 10px; text-align: center; }
+      .dash-stat .dash-num { font-size: 24px; font-weight: 800; color: var(--hero-a); line-height: 1.2; }
+      .dash-stat .dash-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
+      .dash-stat.good .dash-num { color: var(--good); }
+      .dash-stat.warn .dash-num { color: var(--warn); }
+      .dash-stat.bad .dash-num { color: var(--bad); }
+      .dash-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
+      .dash-table th { text-align: left; padding: 4px 6px; font-size: 10px; color: var(--muted); border-bottom: 1px solid var(--line); }
+      .dash-table td { padding: 3px 6px; border-bottom: 1px solid rgba(198,214,230,0.3); }
+      .dash-table tr:hover td { background: rgba(30,123,242,0.04); }
+      .dash-score-good { color: var(--good); font-weight: 700; }
+      .dash-score-warn { color: var(--warn); font-weight: 700; }
+      .dash-score-bad { color: var(--bad); font-weight: 700; }
+      .dash-bar-wrap { height: 3px; background: #e4edf6; border-radius: 2px; margin: 1px 0; overflow: hidden; }
+      .dash-bar-fill { height: 100%; border-radius: 2px; }
+      .dash-tabs { display: flex; gap: 2px; margin-bottom: 10px; }
+      .dash-tab { padding: 5px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 11px; font-weight: 700; background: var(--btn-soft); cursor: pointer; }
+      .dash-tab.active { background: linear-gradient(90deg, var(--hero-a), var(--hero-b)); color: #fff; border-color: transparent; }
+      .dash-loading { text-align: center; padding: 30px; color: var(--muted); font-size: 13px; }
+      #dash-container { min-height: 200px; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <div class="header-left">
+          <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#1e7bf2,#16b9b3);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;">📊</div>
+          <div>
+            <h1 class="title">雪球AI投资伴侣 · 投研看板</h1>
+            <p class="subtitle">全量预分析数据驱动 · 巴菲特六维评分 · 行业板块对比</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <a href="dashboard.html" target="_blank" class="btn-dash" title="在新标签打开完整投研看板">📊 打开完整看板</a>
+        </div>
+      </header>
+
+      <div class="quick-status" id="quickStatus">加载中...</div>
+
+      <section class="section">
+        <h2 class="section-title">📊 投研看板</h2>
+        <div class="dash-tabs" id="dashTabs">
+          <button class="dash-tab active" data-view="overview">概览</button>
+          <button class="dash-tab" data-view="roe">高ROE排行</button>
+          <button class="dash-tab" data-view="value">估值排行</button>
+          <button class="dash-tab" data-view="dividend">高股息排行</button>
+          <button class="dash-tab" data-view="industry">行业分布</button>
+          <button class="dash-tab" data-view="memory">记忆统计</button>
+        </div>
+        <div id="dash-container"><div class="dash-loading">正在加载投研看板数据...</div></div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">雪球身份与模型配置</h2>
+        <label class="field" for="xq_a_token">雪球 xq_a_token（可选）</label>
+        <input id="xq_a_token" type="text" placeholder="自动获取失败时可手动填写" />
+        <label class="field" for="xq_r_token">雪球 xq_r_token（可选）</label>
+        <input id="xq_r_token" type="text" />
+        <label class="field" for="device_id">雪球 device_id（可选）</label>
+        <input id="device_id" type="text" />
+        <label class="checkbox-row">
+          <input id="autoFetchTokens" type="checkbox" checked />
+          自动从雪球 Cookies 读取 token
+        </label>
+        <label class="field" for="openai_api_key">LLM API Key（必填）</label>
+        <input id="openai_api_key" type="password" placeholder="例如 sk-xxxx" />
+        <label class="field" for="api_base_url">LLM API Base URL（OpenAI 兼容）</label>
+        <input id="api_base_url" type="text" placeholder="https://api.deepseek.com/v1" />
+        <label class="field" for="prefer_model">模型名称</label>
+        <input id="prefer_model" type="text" placeholder="deepseek-chat" />
+        <label class="field" for="modelProviders">模型轮动列表（每行：名称|Base URL|Key|Model）</label>
+        <textarea id="modelProviders" rows="4" placeholder="deepseek|http://127.0.0.1:3021/v1|daodao123|deepseek-r1&#10;gemini|http://127.0.0.1:8090/v1|daodao123|gemini-3.1-pro"></textarea>
+        <label class="field" for="cacheTtlMs">缓存时长（毫秒，至少 30000）</label>
+        <input id="cacheTtlMs" type="number" min="30000" step="1000" />
+        <div class="button-row">
+          <button id="refreshTokens">刷新雪球 Token</button>
+          <button id="save" class="primary">保存设置</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">短期记忆与周末回测</h2>
+        <label class="field" for="backtestLookbackDays">回测周期（天，建议 30-90）</label>
+        <input id="backtestLookbackDays" type="number" min="7" max="180" step="1" value="30" />
+        <div class="button-grid" style="margin-top: 10px;">
+          <button id="memoryStats">记忆统计</button>
+          <button id="runBacktest" class="primary">生成周末回测报告</button>
+          <button id="buyList">触发购买名单</button>
+          <button id="recentErrors">最近错误</button>
+          <button id="exportMemory">导出记忆</button>
+          <button id="importMemory">导入记忆</button>
+          <input id="importMemoryFile" type="file" accept=".json" style="display: none;" />
+          <button id="clearMemory" class="danger">清空记忆</button>
+        </div>
+        <div id="backtestReport">暂无报告</div>
+      </section>
+
+      <div id="status"></div>
+    </div>
+    <script src="options.js"></script>
+  </body>
+</html>
